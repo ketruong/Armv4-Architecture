@@ -4,7 +4,7 @@
 ## Implementation
 
 32-bit load/store architecture with Harvard-style organization
-using an FPGA in System Verilog. The key components of the processor are 
+using the Altera DE1 FPGA board. The key components of the processor are 
 
 * Instruction Memory
 * Register File
