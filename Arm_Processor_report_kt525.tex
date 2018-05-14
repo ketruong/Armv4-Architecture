@@ -1,0 +1,161 @@
+\documentclass[11pt,a4paper,titlepage]{article}
+\usepackage[a4paper]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lipsum}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, fouriernc, mathtools}
+% mathtools for: Aboxed (put box on last equation in align envirenment)
+\usepackage{microtype} %improves the spacing between words and letters
+
+\usepackage{graphicx}
+\graphicspath{ {./pics/} {./eps/}}
+\usepackage{epsfig}
+\usepackage{epstopdf}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% COLOR DEFINITIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[svgnames]{xcolor} % Enabling mixing colors and color's call by 'svgnames'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definecolor{MyColor1}{rgb}{0.2,0.4,0.6} %mix personal color
+\newcommand{\textb}{\color{Black} \usefont{OT1}{lmss}{m}{n}}
+\newcommand{\blue}{\color{MyColor1} \usefont{OT1}{lmss}{m}{n}}
+\newcommand{\blueb}{\color{MyColor1} \usefont{OT1}{lmss}{b}{n}}
+\newcommand{\red}{\color{LightCoral} \usefont{OT1}{lmss}{m}{n}}
+\newcommand{\green}{\color{Turquoise} \usefont{OT1}{lmss}{m}{n}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FONTS AND COLORS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    SECTIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{titlesec}
+\usepackage{sectsty}
+%%%%%%%%%%%%%%%%%%%%%%%%
+%set section/subsections HEADINGS font and color
+\sectionfont{\color{MyColor1}}  % sets colour of sections
+\subsectionfont{\color{MyColor1}}  % sets colour of sections
+
+%set section enumerator to arabic number (see footnotes markings alternatives)
+\renewcommand\thesection{\arabic{section}.} %define sections numbering
+\renewcommand\thesubsection{\thesection\arabic{subsection}} %subsec.num.
+
+%define new section style
+\newcommand{\mysection}{
+    \titleformat{\section} [runin] {\usefont{OT1}{lmss}{b}{n}\color{MyColor1}} 
+{\thesection} {3pt} {} } 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%		CAPTIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{caption}
+%\usepackage[font=small,skip=4pt]{caption}
+\usepackage{subcaption}
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%\captionsetup[figure]{labelfont={color=Turquoise}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%		!!!EQUATION (ARRAY) --> USING ALIGN INSTEAD
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%using amsmath package to redefine eq. numeration (1.1, 1.2, ...) 
+%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\theequation}{\thesection\arabic{equation}}
+
+%set box background to grey in align environment 
+\usepackage{etoolbox}% http://ctan.org/pkg/etoolbox
+\makeatletter
+\patchcmd{\@Aboxed}{\boxed{#1#2}}{\colorbox{black!15}{$#1#2$}}{}{}%
+\patchcmd{\@boxed}{\boxed{#1#2}}{\colorbox{black!15}{$#1#2$}}{}{}%
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes.gates.logic.US,shapes.gates.logic.IEC,calc}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DESIGN CIRCUITS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[siunitx, american, smartlabels, cute inductors, europeanvoltages]{circuitikz}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{float}
+
+\makeatletter
+\let\reftagform@=\tagform@
+\def\tagform@#1{\maketag@@@{(\ignorespaces\textcolor{red}{#1}\unskip\@@italiccorr)}}
+\renewcommand{\eqref}[1]{\textup{\reftagform@{\ref{#1}}}}
+\makeatother
+\usepackage{hyperref}
+\hypersetup{colorlinks=true}
+\usepackage{placeins}
+\usepackage{geometry}
+\usepackage{rotating}
+\usepackage[margin=0.5in]{geometry}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PREPARE TITLE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\blue Introduction to Computer Engineering\\
+\blueb Arm Processor}
+\author{Kevin Truong}
+\date{\today}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tikzstyle{branch}=[fill,shape=circle,minimum size=3pt,inner sep=0pt]
+
+\begin{document}
+\newgeometry{left=1in,bottom=1in,top=1in, right=1in}
+\maketitle
+\section{ARM Processor}{%
+
+    \subsection{Program Counter}{
+        The Program Counter contains the address of the instruction to be executed.
+        \begin{center}
+            \includegraphics[width=100mm, scale =1]{pc.png}
+        \end{center}
+        The program counter is usually incremented by four because each instruction is 32 bits. When the 
+        clock edge is 1, the input address becomes the output address. 
+    }\label{sub:sub1}%
+
+
+    \subsection{Branch}{
+        The branch instruction adds PC+8 with a 24-bit immediate. RegSrc is 1 so that the multiplexer
+        selects R15, which contains the program counter. The immediate is extended by four and extended and
+        added to R15. The Aluresult is fed into the PC, so that the program counter is changed.
+
+    }\label{sub:sub3}
+
+
+
+}\label{sec:q1sec}
+
+%%% END SECTION 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Extra Functionality}{%
+    \subsection{Carry Lookahead Adder}{
+        I implemented the carry-lookahead adder. I generated the propogate and generate using a for loop in C. 
+        \begin{center}
+            \includegraphics[scale = 1]{propogate.png}
+        \end{center}
+        
+        \center I used the propogate and generate values to find the carry values.
+        \begin{center}
+            \includegraphics[scale =1]{carry_look.png}
+        \end{center}
+        
+        My ripple carry adder works also.
+    }
+    
+    \subsection{Testing}{
+        I tested my design with the given testcases.
+    }\label{sub:sub2-1}
+}
+
+
+\end{document}

@@ -1,0 +1,209 @@
+
+module Project_5 (
+    input wire  clock,                 // input reference clock (50MHz)
+    input wire  [9:0] sw,              // DE1 input switches for debugging
+    input wire  [3:0] key_n,           // DE1 input push buttons for debugging
+	 output wire [7:0] ledg,            // green LEDs on DE1 board for debug output
+	 output wire [9:0] ledr,            // red LEDs on DE1 board for debug output
+	 output wire [6:0] hex0,            // hex displays for showing memory contents
+	 output wire [6:0] hex1,
+	 output wire [6:0] hex2,
+	 output wire [6:0] hex3
+);
+
+// Clock related signals
+wire clk_50Mhz, clk_1Hz;
+assign clk_50Mhz = clock;
+
+// Debugging, reset state machine
+wire reset_n;
+assign reset_n = key_n[0];
+
+// If in simulation, don't use clock divider
+// MODEL_TECH is a built-in variable that is True
+// when you compile for simulation, but False
+// when you compile to FPGA
+`ifdef MODEL_TECH
+  assign clk_1Hz = clk_50Mhz;
+`else
+// Generate slower clock using clock divider
+clock_divider clock_divider_instance (
+	.clk		(clk_50Mhz),
+	.rst		(~reset_n),
+	.clk_out	(clk_1Hz)
+);
+`endif
+
+// Debugging
+assign ledr[9] = clk_1Hz;
+
+
+// Program counter
+pc prog_count (
+  .clock (clk_1Hz),
+  .in (pcprime),
+  .out (pc)
+);
+
+// Instruction memory instance
+mem_dual inst_mem (
+  .clock (clk_1Hz),
+  .data_0 (0),
+  //.data_1 (), not used
+  .address_0 (pc),
+  //.address_1 (), not used
+  .wren_0 (0),
+  //.wren_1 (), not used
+  .q_0 (inst)
+  //.q_1 (), not used
+);
+defparam inst_mem.WIDTH_BITS = 32;
+defparam inst_mem.DEPTH_4BYTE_WORDS = 64;
+defparam inst_mem.FILE = "inst_mem_testcase_1.txt";
+
+wire [31:0] pc, pcprime, inst, pcplus4, pcplus8, rd1, rd2, srca, srcb, writedata, extimm, readdata, result, aluresult, ra2, ra1;
+wire pcsrc, memtoreg, memwrite, alusrc, immsrc, regwrite, regsrca, regsrcb;
+wire [31:0] alucontrol;
+wire [3:0] aluflags;
+wire [31:0] memdisplayaddr;
+wire [31:0] memdisplaydata;
+assign ledg = pcplus8;
+
+assign ledr[7:0] = pc;
+
+// Register file
+regfile regfile_inst (
+    .clock(clk_1Hz),
+    .a1(ra1),
+    .a2(ra2),
+    .a3(inst[15:12]),
+    .rd1(srca),
+    .rd2(writedata),
+    .wd3(result),
+    .r15(pcplus8),
+    .we3(regwrite)
+
+);
+
+// Controller
+controller controller_inst (
+
+  .cond(inst[31:28]),
+  .op(inst[27:26]),
+  .funct(inst[25:20]),
+  .rd(inst[15:12]),
+  .flags(aluflags),
+  .rawinst(inst),
+  .pcsrc(pcsrc),
+  .memtoreg(memtoreg),
+  .memwrite(memwrite),
+  .alucontrol(alucontrol),
+  .alusrc(alusrc),
+  .immsrc(immsrc),
+  .regwrite(regwrite),
+  .regsrca(regsrca),
+  .regsrcb(regsrcb)
+);
+
+// ALU
+alu alu_inst (
+    .clock(clk_1Hz),
+    .srca(srca),
+    .srcb(srcb),
+    .alucontrol(alucontrol),
+    .aluflags(aluflags),
+    .aluresult(aluresult)
+);
+
+// Data memory instance
+mem_dual data_mem (
+  .clock (clk_1Hz),
+  .data_0 (writedata),
+  .data_1 (0),
+  .address_0 (aluresult),
+  .address_1 (memdisplayaddr),
+  .wren_0 (memwrite),
+  .wren_1 (0),
+  .q_0 (readdata),
+  .q_1 (memdisplaydata)
+);
+defparam data_mem.WIDTH_BITS = 32;
+defparam data_mem.DEPTH_4BYTE_WORDS = 64;
+defparam data_mem.FILE = "data_mem_testcase_1.txt";
+
+// Memory display for debugging
+// displays low-order 2 bytes on hex displays
+// displays from memory address 63 (0x0000003F)
+memdisplay memdisplay_inst (
+  .address (memdisplayaddr),
+  .datain (memdisplaydata),
+  .hex0 (hex0),
+  .hex1 (hex1),
+  .hex2 (hex2),
+  .hex3 (hex3)
+);
+
+// PCSrc mux
+multiplexer mux_pcsrc (
+    .sel(pcsrc),
+    .in0(pcplus4),
+    .in1(result),
+    .out(pcprime)
+);
+
+// RegScr1 mux
+multiplexer mux_regsrc1 (
+    .sel(regsrcb),
+    .in0(inst[19:16]),
+    .in1(4'b1111),
+    .out(ra1[3:0])
+);
+
+// RegScr2 mux
+multiplexer mux_regsrc2 (
+    .sel(regsrca),
+	 
+    .in0(inst[3:0]),
+    .in1(inst[15:12]),
+    .out(ra2[3:0])
+);
+
+// PCPlus4 adder
+adder adder_pcplus4 (
+    .a(pc),
+    .b(32'd4),
+    .s(pcplus4)
+);
+
+// PCPlus8 adder
+adder adder_pcplus8 (
+    .a(pcplus4),
+    .b(32'd4),
+    .s(pcplus8)
+);
+
+
+
+// SrcB mux
+multiplexer mux_srcb (
+    .sel(alusrc),
+    .in0(writedata),
+    .in1(extimm),
+    .out(srcb)
+);
+
+// ReadData mux
+multiplexer mux_readdata (
+    .sel(memtoreg),
+    .in0(aluresult),
+    .in1(readdata),
+    .out(result)
+);
+
+// Sign extend
+// This is only useful for B instruction where there is << 2
+// and also if you don't use arithmetic instructions that require immediate
+// May need to create your own extimm module to do more useful things
+assign extimm = {inst[23], inst[23], inst[23], inst[23], inst[23], inst[23], inst[23:0], 1'b0, 1'b0};
+
+endmodule
