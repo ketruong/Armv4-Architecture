@@ -13,8 +13,6 @@ using the Altera DE1 FPGA board. The key components of the processor are
 * Program Counter 
 * Controller
 
-Addition was implemented using carry lookahead adders. 
-
 ## Instructions
 The following instructions were implemented:
 
